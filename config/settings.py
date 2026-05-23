@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 from decouple import config, Csv
 import dj_database_url
@@ -72,19 +73,34 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-# Only include STATICFILES_DIRS if the directory actually exists
 _static_dir = BASE_DIR / 'static'
 if _static_dir.exists():
     STATICFILES_DIRS = [_static_dir]
-
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
-    'API_KEY': config('CLOUDINARY_API_KEY', default=''),
-    'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
-}
+# Cloudinary configuration — reads from CLOUDINARY_URL first,
+# then falls back to individual keys
+CLOUDINARY_URL = config('CLOUDINARY_URL', default='')
+if CLOUDINARY_URL:
+    match = re.match(r'cloudinary://(\d+):(.+)@(.+)', CLOUDINARY_URL)
+    if match:
+        CLOUDINARY_STORAGE = {
+            'API_KEY': match.group(1),
+            'API_SECRET': match.group(2),
+            'CLOUD_NAME': match.group(3),
+        }
+    else:
+        CLOUDINARY_STORAGE = {
+            'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
+            'API_KEY': config('CLOUDINARY_API_KEY', default=''),
+            'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
+        }
+else:
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
+        'API_KEY': config('CLOUDINARY_API_KEY', default=''),
+        'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
+    }
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/'
