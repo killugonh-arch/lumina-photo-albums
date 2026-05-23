@@ -79,19 +79,18 @@ if _static_dir.exists():
     STATICFILES_DIRS = [_static_dir]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Cloudinary — parse CLOUDINARY_URL and configure everything
+# Cloudinary — parse CLOUDINARY_URL first, fall back to 3 separate keys
 CLOUDINARY_URL = config('CLOUDINARY_URL', default='')
-match = re.match(r'cloudinary://(\d+):(.+)@(.+)', CLOUDINARY_URL)
-if match:
-    _api_key    = match.group(1)
-    _api_secret = match.group(2)
-    _cloud_name = match.group(3)
+_match = re.match(r'cloudinary://(\d+):(.+)@(.+)', CLOUDINARY_URL)
+if _match:
+    _api_key    = _match.group(1)
+    _api_secret = _match.group(2)
+    _cloud_name = _match.group(3)
 else:
     _api_key    = config('CLOUDINARY_API_KEY', default='')
     _api_secret = config('CLOUDINARY_API_SECRET', default='')
     _cloud_name = config('CLOUDINARY_CLOUD_NAME', default='')
 
-# Configure the cloudinary library directly
 cloudinary.config(
     cloud_name = _cloud_name,
     api_key    = _api_key,
@@ -99,7 +98,6 @@ cloudinary.config(
     secure     = True,
 )
 
-# Also set CLOUDINARY_STORAGE for django-cloudinary-storage
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': _cloud_name,
     'API_KEY':    _api_key,
