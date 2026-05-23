@@ -7,6 +7,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.http import HttpResponseForbidden
 from django.db.models import Q
+import cloudinary.uploader
+
 from .models import Album, Photo
 from .forms import AlbumForm, PhotoForm, PhotoUploadForm
 
@@ -60,9 +62,23 @@ class AlbumCreateView(LoginRequiredMixin, CreateView):
     template_name = 'albums/album_form.html'
 
     def form_valid(self, form):
-        form.instance.owner = self.request.user
+        album = form.save(commit=False)
+        album.owner = self.request.user
+
+        # Upload cover image directly to Cloudinary
+        cover_file = self.request.FILES.get('cover_image')
+        if cover_file:
+            result = cloudinary.uploader.upload(
+                cover_file,
+                folder='album_covers',
+                resource_type='image',
+            )
+            album.cover_image = result['secure_url']
+
+        album.save()
+        form.save_m2m()
         messages.success(self.request, 'Album created successfully!')
-        return super().form_valid(form)
+        return redirect(album.get_absolute_url())
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -85,18 +101,32 @@ class AlbumUpdateView(LoginRequiredMixin, UpdateView):
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         if self.object is None:
-            return HttpResponseForbidden("You don't have permission to edit this album.")
+            return HttpResponseForbidden()
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         if self.object is None:
-            return HttpResponseForbidden("You don't have permission to edit this album.")
+            return HttpResponseForbidden()
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
+        album = form.save(commit=False)
+
+        # Upload new cover image directly to Cloudinary if provided
+        cover_file = self.request.FILES.get('cover_image')
+        if cover_file:
+            result = cloudinary.uploader.upload(
+                cover_file,
+                folder='album_covers',
+                resource_type='image',
+            )
+            album.cover_image = result['secure_url']
+
+        album.save()
+        form.save_m2m()
         messages.success(self.request, 'Album updated successfully!')
-        return super().form_valid(form)
+        return redirect(album.get_absolute_url())
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -119,17 +149,15 @@ class AlbumDeleteView(LoginRequiredMixin, DeleteView):
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         if self.object is None:
-            return HttpResponseForbidden("You don't have permission to delete this album.")
-        context = self.get_context_data(object=self.object)
-        return self.render_to_response(context)
+            return HttpResponseForbidden()
+        return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         if self.object is None:
             return HttpResponseForbidden()
         messages.success(request, 'Album deleted successfully.')
-        self.object.delete()
-        return redirect(self.success_url)
+        return self.delete(request, *args, **kwargs)
 
 
 class PhotoUploadView(LoginRequiredMixin, View):
@@ -137,22 +165,40 @@ class PhotoUploadView(LoginRequiredMixin, View):
         album = get_object_or_404(Album, pk=album_pk)
         if not album.user_can_add_photos(request.user):
             return HttpResponseForbidden()
-        form = PhotoUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            photo = form.save(commit=False)
-            photo.album = album
-            photo.uploaded_by = request.user
+
+        image_file = request.FILES.get('image')
+        if not image_file:
+            messages.error(request, 'Please select an image file.')
+            return redirect('albums:album_detail', pk=album_pk)
+
+        try:
+            # Upload directly to Cloudinary
+            result = cloudinary.uploader.upload(
+                image_file,
+                folder='photos',
+                resource_type='image',
+            )
+            cloudinary_url = result['secure_url']
+
+            photo = Photo(
+                album=album,
+                uploaded_by=request.user,
+                title=request.POST.get('title', ''),
+                description=request.POST.get('description', ''),
+            )
+            # Save the Cloudinary URL directly into the image field
+            photo.image = cloudinary_url
             photo.save()
             messages.success(request, 'Photo uploaded successfully!')
-        else:
-            messages.error(request, 'Error uploading photo. Please try again.')
+        except Exception as e:
+            messages.error(request, f'Upload failed: {str(e)}')
+
         return redirect('albums:album_detail', pk=album_pk)
 
 
 class PhotoDetailView(DetailView):
     model = Photo
     template_name = 'albums/photo_detail.html'
-    context_object_name = 'photo'
 
     def get_object(self):
         photo = get_object_or_404(Photo, pk=self.kwargs['pk'])
@@ -196,17 +242,30 @@ class PhotoUpdateView(LoginRequiredMixin, UpdateView):
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
-        messages.success(self.request, 'Photo updated successfully!')
-        return super().form_valid(form)
+        photo = form.save(commit=False)
 
-    def get_success_url(self):
-        return reverse('albums:album_detail', kwargs={'pk': self.object.album.pk})
+        # If a new image file was provided, upload it to Cloudinary
+        image_file = self.request.FILES.get('image')
+        if image_file:
+            result = cloudinary.uploader.upload(
+                image_file,
+                folder='photos',
+                resource_type='image',
+            )
+            photo.image = result['secure_url']
+
+        photo.save()
+        messages.success(self.request, 'Photo updated successfully!')
+        return redirect(reverse('albums:album_detail', kwargs={'pk': photo.album.pk}))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
 
 
 class PhotoDeleteView(LoginRequiredMixin, DeleteView):
     model = Photo
     template_name = 'albums/photo_confirm_delete.html'
-    context_object_name = 'photo'
 
     def get_object(self):
         photo = get_object_or_404(Photo, pk=self.kwargs['pk'])
@@ -218,22 +277,17 @@ class PhotoDeleteView(LoginRequiredMixin, DeleteView):
         self.object = self.get_object()
         if self.object is None:
             return HttpResponseForbidden()
-        context = self.get_context_data(object=self.object)
-        return self.render_to_response(context)
+        return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         if self.object is None:
             return HttpResponseForbidden()
-        # Store album pk BEFORE deletion so get_success_url works
-        album_pk = self.object.album.pk
         messages.success(request, 'Photo deleted.')
-        self.object.delete()
-        return redirect('albums:album_detail', pk=album_pk)
+        return self.delete(request, *args, **kwargs)
 
     def get_success_url(self):
-        # Fallback — not called when post() redirects directly, but kept for safety
-        return reverse('albums:album_list')
+        return reverse('albums:album_detail', kwargs={'pk': self.object.album.pk})
 
 
 class MyAlbumsView(LoginRequiredMixin, ListView):
