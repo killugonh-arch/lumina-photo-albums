@@ -4,7 +4,7 @@
 
 {% block extra_css %}
 <style>
-/* ── Photo Grid & Cards ─────────────────────────────────── */
+/* ── Photo Grid ─────────────────────────────────────────── */
 .photo-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -15,10 +15,9 @@
 .photo-card {
     position: relative;
     overflow: hidden;
-    background: #111;
+    background: #1a1612;
     border-radius: 4px;
     aspect-ratio: 1 / 1;
-    cursor: pointer;
 }
 
 .photo-card img {
@@ -26,26 +25,37 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.4s ease, filter 0.4s ease;
+    transition: transform 0.4s ease, filter 0.3s ease;
 }
 
+/* ── Clickable full-card link (bottom layer) ─────────────── */
+.photo-card-link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: block;
+    cursor: pointer;
+}
+
+/* ── Hover effects ───────────────────────────────────────── */
 .photo-card:hover img {
-    transform: scale(1.04);
-    filter: brightness(0.55);
+    transform: scale(1.05);
+    filter: brightness(0.5);
 }
 
-/* ── Overlay ─────────────────────────────────────────────── */
+/* ── Overlay (title + buttons) ───────────────────────────── */
 .photo-card-overlay {
     position: absolute;
     inset: 0;
+    z-index: 2;
     opacity: 0;
+    pointer-events: none;
     transition: opacity 0.3s ease;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    padding: 1rem;
-    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 55%);
-    pointer-events: none;
+    padding: 0.9rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 60%);
 }
 
 .photo-card:hover .photo-card-overlay {
@@ -54,70 +64,52 @@
 }
 
 .photo-card-title {
-    font-size: 0.78rem;
-    letter-spacing: 0.05em;
-    color: rgba(255,255,255,0.9);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.92);
     font-weight: 500;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.45rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* ── Action Buttons ──────────────────────────────────────── */
+/* ── Edit / Delete buttons ───────────────────────────────── */
 .photo-action-btns {
     display: flex;
     gap: 0.4rem;
-    margin-top: 0.25rem;
+    position: relative;
+    z-index: 3;        /* above the full-card link */
 }
 
 .photo-action-btns a {
-    padding: 0.3rem 0.75rem;
-    font-size: 0.65rem;
+    padding: 0.28rem 0.7rem;
+    font-size: 0.63rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     text-decoration: none;
-    border: 1px solid rgba(255,255,255,0.55);
-    color: white;
-    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.5);
+    color: #fff;
+    background: rgba(0,0,0,0.4);
     backdrop-filter: blur(4px);
     border-radius: 2px;
-    transition: background 0.2s, border-color 0.2s;
+    transition: background 0.2s;
     cursor: pointer;
-    z-index: 10;
 }
 
 .photo-action-btns a:hover {
-    background: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.18);
 }
 
 .photo-action-btns a.delete-btn {
-    border-color: rgba(255,100,100,0.6);
+    border-color: rgba(255,100,100,0.55);
     color: #ffbbbb;
 }
 
 .photo-action-btns a.delete-btn:hover {
-    background: rgba(139,42,21,0.75);
-    color: white;
+    background: rgba(160,40,20,0.75);
+    color: #fff;
     border-color: rgba(220,80,60,0.8);
-}
-
-/* ── View-full clickable zone (behind buttons) ───────────── */
-.photo-card-link {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    display: block;
-}
-
-.photo-action-btns {
-    position: relative;
-    z-index: 2;
-}
-
-.photo-card-title {
-    position: relative;
-    z-index: 2;
 }
 </style>
 {% endblock %}
@@ -177,28 +169,40 @@
 <div class="photo-grid">
     {% for photo in photos %}
     <div class="photo-card">
-        {# Full-card click goes to photo detail #}
-        <a href="{% url 'albums:photo_detail' photo.pk %}" class="photo-card-link" aria-label="View {{ photo.title|default:'photo' }}"></a>
 
-        <img src="{{ photo.image.url }}" alt="{{ photo.title|default:'Photo' }}" loading="lazy">
+        {# ── Layer 1: full-card clickable link → photo detail ── #}
+        <a href="{% url 'albums:photo_detail' photo.pk %}"
+           class="photo-card-link"
+           title="View {{ photo.title|default:'photo' }}"></a>
 
+        {# ── The actual image ── #}
+        <img src="{{ photo.image.url }}"
+             alt="{{ photo.title|default:'Photo' }}"
+             loading="lazy">
+
+        {# ── Layer 2: overlay with title + action buttons ── #}
         <div class="photo-card-overlay">
             <span class="photo-card-title">{{ photo.title|default:"Untitled" }}</span>
             {% if can_edit %}
             <div class="photo-action-btns">
+                {# These are z-index:3 so they override the full-card link #}
                 <a href="{% url 'albums:photo_edit' photo.pk %}">Edit</a>
                 <a href="{% url 'albums:photo_delete' photo.pk %}" class="delete-btn">Delete</a>
             </div>
             {% endif %}
         </div>
+
     </div>
     {% endfor %}
 </div>
+
 {% else %}
 <div class="empty-state">
     <div class="empty-state-icon">📷</div>
     <div class="empty-state-title">No photos yet</div>
-    <p class="empty-state-text">{% if can_add_photos %}Upload your first photo above.{% else %}The album owner hasn't added photos yet.{% endif %}</p>
+    <p class="empty-state-text">
+        {% if can_add_photos %}Upload your first photo above.{% else %}The album owner hasn't added photos yet.{% endif %}
+    </p>
 </div>
 {% endif %}
 {% endblock %}
