@@ -4,23 +4,25 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
 import cloudinary
+import cloudinary.uploader
+import base64
+
 
 def debug_cloudinary(request):
     cfg = cloudinary.config()
+
+    tiny_png = base64.b64decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+    )
+
     try:
-        import cloudinary.uploader
-        # Try a real test upload of a tiny 1x1 pixel PNG
-        import base64
-        tiny_png = base64.b64decode(
-            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
-        )
         result = cloudinary.uploader.upload(
             tiny_png,
             resource_type='image',
             public_id='test_connection_ping',
             overwrite=True,
         )
-        upload_test = 'SUCCESS — ' + result.get('secure_url', 'no url')
+        upload_test = 'SUCCESS — ' + result.get('secure_url', 'no url returned')
     except Exception as e:
         upload_test = 'FAILED — ' + str(e)
 
@@ -31,6 +33,7 @@ def debug_cloudinary(request):
         'upload_test': upload_test,
         'DEFAULT_FILE_STORAGE': settings.DEFAULT_FILE_STORAGE,
     })
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
