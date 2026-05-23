@@ -1,6 +1,72 @@
 {% extends 'base.html' %}
 {% block title %}{{ photo.title|default:"Photo" }} — Lumina{% endblock %}
 
+{% block extra_css %}
+<style>
+.photo-detail-wrap {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 2rem;
+    align-items: start;
+    margin-top: 1.5rem;
+}
+
+.photo-detail-img {
+    width: 100%;
+    max-height: 78vh;
+    object-fit: contain;
+    background: #111;
+    display: block;
+    border-radius: 4px;
+}
+
+.photo-detail-sidebar {
+    position: sticky;
+    top: 2rem;
+}
+
+.photo-meta-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--warm-gray);
+    margin-bottom: 1.5rem;
+}
+
+.photo-meta-row a {
+    color: var(--rose, #c0704a);
+    text-decoration: none;
+}
+
+.photo-meta-row a:hover {
+    text-decoration: underline;
+}
+
+/* Action buttons in sidebar */
+.photo-sidebar-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+}
+
+.photo-sidebar-actions .btn {
+    text-align: center;
+    width: 100%;
+}
+
+@media (max-width: 700px) {
+    .photo-detail-wrap {
+        grid-template-columns: 1fr;
+    }
+    .photo-detail-sidebar {
+        position: static;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="breadcrumb">
     <a href="{% url 'albums:album_list' %}">Explore</a>
@@ -10,31 +76,49 @@
     <span>{{ photo.title|default:"Photo" }}</span>
 </div>
 
-<div style="display:grid; grid-template-columns:1fr 300px; gap:2rem; align-items:start;">
+<div class="photo-detail-wrap">
+
+    {# ── Left: full image ── #}
     <div>
-        <img src="{{ photo.image.url }}" alt="{{ photo.title|default:'Photo' }}"
-             style="width:100%; max-height:75vh; object-fit:contain; background:#1A1612;">
+        <img src="{{ photo.image.url }}"
+             alt="{{ photo.title|default:'Photo' }}"
+             class="photo-detail-img">
     </div>
-    <div>
+
+    {# ── Right: info + actions ── #}
+    <div class="photo-detail-sidebar">
         <p class="section-label">Photo Details</p>
         <h1 class="page-title" style="font-size:1.8rem; margin-bottom:1rem;">
             {{ photo.title|default:"Untitled Photo" }}
         </h1>
+
         {% if photo.description %}
-        <p style="color:var(--warm-gray); line-height:1.7; margin-bottom:1.5rem;">{{ photo.description }}</p>
+        <p style="color:var(--warm-gray); line-height:1.7; margin-bottom:1.5rem;">
+            {{ photo.description }}
+        </p>
         {% endif %}
-        <div style="font-size:0.8rem; color:var(--warm-gray); margin-bottom:2rem; display:flex; flex-direction:column; gap:0.4rem;">
-            <span>📁 <a href="{% url 'albums:album_detail' photo.album.pk %}" style="color:var(--rose);">{{ photo.album.title }}</a></span>
+
+        <div class="photo-meta-row">
+            <span>📁 <a href="{% url 'albums:album_detail' photo.album.pk %}">{{ photo.album.title }}</a></span>
             <span>👤 {{ photo.uploaded_by.get_full_name|default:photo.uploaded_by.username|default:"Unknown" }}</span>
             <span>🗓 {{ photo.uploaded_at|date:"N j, Y" }}</span>
         </div>
+
         {% if can_edit %}
         <hr class="divider">
-        <div style="display:flex; flex-direction:column; gap:0.75rem;">
-            <a href="{% url 'albums:photo_edit' photo.pk %}" class="btn btn-secondary btn-sm">Edit Photo Info</a>
-            <a href="{% url 'albums:photo_delete' photo.pk %}" class="btn btn-danger btn-sm">Delete Photo</a>
+        <div class="photo-sidebar-actions">
+            <a href="{% url 'albums:photo_edit' photo.pk %}" class="btn btn-secondary btn-sm">✏️ Edit Photo</a>
+            <a href="{% url 'albums:photo_delete' photo.pk %}" class="btn btn-danger btn-sm">🗑 Delete Photo</a>
         </div>
         {% endif %}
+
+        <div style="margin-top:1.5rem;">
+            <a href="{% url 'albums:album_detail' photo.album.pk %}"
+               style="font-size:0.78rem; color:var(--warm-gray); text-decoration:none;">
+                ← Back to album
+            </a>
+        </div>
     </div>
+
 </div>
 {% endblock %}
