@@ -2,6 +2,39 @@
 
 {% block title %}{{ album.title }} — Lumina{% endblock %}
 
+{% block extra_css %}
+<style>
+.photo-card-overlay {
+    opacity: 0;
+    transition: opacity 0.3s;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1rem;
+}
+.photo-card:hover .photo-card-overlay { opacity: 1; }
+.photo-action-btns {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+}
+.photo-action-btns a {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.6);
+    color: white;
+    background: rgba(0,0,0,0.4);
+    transition: background 0.2s;
+}
+.photo-action-btns a:hover { background: rgba(0,0,0,0.7); }
+.photo-action-btns a.delete-btn { border-color: rgba(255,100,100,0.6); color: #ffaaaa; }
+.photo-action-btns a.delete-btn:hover { background: rgba(139,42,21,0.8); color: white; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="breadcrumb">
     <a href="{% url 'albums:album_list' %}">Explore</a>
@@ -56,10 +89,18 @@
 {% if photos %}
 <div class="photo-grid">
     {% for photo in photos %}
-    <div class="photo-card" onclick="window.location='{% url 'albums:photo_detail' photo.pk %}'">
-        <img src="{{ photo.image.url }}" alt="{{ photo.title|default:'Photo' }}" loading="lazy">
+    <div class="photo-card">
+        <img src="{{ photo.image.url }}" alt="{{ photo.title|default:'Photo' }}" loading="lazy"
+             onclick="window.location='{% url 'albums:photo_detail' photo.pk %}'"
+             style="cursor:pointer;">
         <div class="photo-card-overlay">
             <span class="photo-card-title">{{ photo.title|default:"Untitled" }}</span>
+            {% if can_edit %}
+            <div class="photo-action-btns">
+                <a href="{% url 'albums:photo_edit' photo.pk %}">Edit</a>
+                <a href="{% url 'albums:photo_delete' photo.pk %}" class="delete-btn">Delete</a>
+            </div>
+            {% endif %}
         </div>
     </div>
     {% endfor %}
