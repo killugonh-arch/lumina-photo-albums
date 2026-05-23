@@ -3,13 +3,13 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
-import cloudinary
-import cloudinary.uploader
 import base64
+import cloudinary as cld
+import cloudinary.uploader
 
 
 def debug_cloudinary(request):
-    cfg = cloudinary.config()
+    cfg = cld.config()
 
     tiny_png = base64.b64decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
