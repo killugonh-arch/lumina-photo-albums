@@ -8,98 +8,66 @@
     <span class="breadcrumb-sep">›</span>
     <span>Edit Photo</span>
 </div>
-
 <div class="page-header">
     <div>
         <p class="section-label">Photo Management</p>
         <h1 class="page-title" style="font-size:2.2rem;">Edit Photo</h1>
     </div>
 </div>
-
 <hr class="divider">
-
 <div class="form-wrap">
 
-    <!-- Current / preview image -->
+    <!-- Current image preview -->
     <div style="margin-bottom:2rem;">
         <p class="section-label" style="margin-bottom:0.75rem;">Current Image</p>
-        <img id="preview-img"
-             src="{{ object.image.url }}"
-             alt="{{ object.title }}"
-             style="max-width:100%; max-height:320px; object-fit:contain;
-                    border:1px solid var(--border); display:block;
-                    transition: opacity 0.3s;">
-        <p id="preview-hint" style="display:none; font-size:0.75rem;
-           color:var(--warm-gray); margin-top:0.4rem;">
-            ↑ Preview of new image (not saved yet)
-        </p>
+        <img id="preview-img" src="{{ object.image.url }}" alt="{{ object.title }}"
+             style="max-width:100%; max-height:320px; object-fit:contain; border:1px solid var(--border); display:block;">
     </div>
 
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
-        <!-- Replace image -->
+        <!-- Image field from form (handles replace-or-keep logic) -->
         <div class="form-group">
-            <label>
-                Replace Image
-                <span style="font-size:0.7rem; color:var(--warm-gray);
-                      text-transform:none; letter-spacing:0; font-weight:400;">
-                    (optional — leave blank to keep current)
-                </span>
-            </label>
-            <input type="file"
-                   name="image"
-                   id="id_new_image"
-                   accept="image/*"
-                   class="form-control"
-                   onchange="previewImage(this)"
-                   style="padding:0.5rem;">
+            <label>Replace Image <span style="font-size:0.7rem; color:var(--warm-gray); text-transform:none; letter-spacing:0;">(optional — leave blank to keep current)</span></label>
+            {{ form.image }}
         </div>
 
         <div class="form-group">
-            <label for="{{ form.title.id_for_label }}">Title</label>
+            <label>Title</label>
             {{ form.title }}
-            {% if form.title.errors %}
-            <ul class="errorlist">{% for e in form.title.errors %}<li>{{ e }}</li>{% endfor %}</ul>
-            {% endif %}
         </div>
-
         <div class="form-group">
-            <label for="{{ form.description.id_for_label }}">Description</label>
+            <label>Description</label>
             {{ form.description }}
         </div>
-
         <div class="form-group">
-            <label for="{{ form.order.id_for_label }}">Order</label>
+            <label>Order</label>
             {{ form.order }}
         </div>
-
         <hr class="divider">
-
         <div style="display:flex; gap:1rem;">
             <button type="submit" class="btn btn-primary">Save Changes</button>
-            <a href="{% url 'albums:photo_detail' object.pk %}" class="btn btn-secondary">View Photo</a>
             <a href="{% url 'albums:album_detail' object.album.pk %}" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
 </div>
 
 <script>
-function previewImage(input) {
-    const img   = document.getElementById('preview-img');
-    const hint  = document.getElementById('preview-hint');
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            img.style.opacity = '0';
-            setTimeout(() => {
-                img.src = e.target.result;
-                img.style.opacity = '1';
-                hint.style.display = 'block';
-            }, 200);
-        };
-        reader.readAsDataURL(input.files[0]);
+// Preview new image before upload
+document.addEventListener('DOMContentLoaded', function() {
+    const imgInput = document.querySelector('input[type="file"][name="image"]');
+    if (imgInput) {
+        imgInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview-img').src = e.target.result;
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
     }
-}
+});
 </script>
 {% endblock %}
