@@ -15,8 +15,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'cloudinary_storage',
+    'django.contrib.staticfiles',
     'cloudinary',
     'accounts',
     'albums',
@@ -96,3 +96,4 @@ if not DEBUG:
     X_FRAME_OPTIONS = 'DENY'
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
