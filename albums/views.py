@@ -197,7 +197,8 @@ class PhotoUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('albums:album_detail', kwargs={'pk': self.object.album.pk})
+        # ← goes to photo_detail now, not album_detail
+        return reverse('albums:photo_detail', kwargs={'pk': self.object.pk})
 
 
 class PhotoDeleteView(LoginRequiredMixin, DeleteView):
