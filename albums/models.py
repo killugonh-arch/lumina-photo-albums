@@ -32,6 +32,16 @@ class Album(models.Model):
     def photo_count(self):
         return self.photos.count()
 
+    @property
+    def cover_image_url(self):
+        """Returns Cloudinary URL or None — never a broken local path."""
+        val = str(self.cover_image) if self.cover_image else ''
+        if not val:
+            return None
+        if val.startswith(('http://', 'https://')):
+            return val
+        return None  # local path = broken, treat as no image
+
     def user_can_view(self, user):
         if self.visibility == 'public':
             return True
@@ -71,3 +81,13 @@ class Photo(models.Model):
 
     def get_absolute_url(self):
         return reverse('albums:photo_detail', kwargs={'pk': self.pk})
+
+    @property
+    def image_url(self):
+        """Returns Cloudinary URL or None — never a broken local path."""
+        val = str(self.image) if self.image else ''
+        if not val:
+            return None
+        if val.startswith(('http://', 'https://')):
+            return val
+        return None  # local path = broken, treat as no image
