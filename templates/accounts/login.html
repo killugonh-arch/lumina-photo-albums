@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Sign In — Lumina{% endblock %}
+
+{% block content %}
+<div style="min-height:70vh; display:flex; align-items:center; justify-content:center;">
+    <div style="width:100%; max-width:440px;">
+        <div style="text-align:center; margin-bottom:2.5rem;">
+            <p class="section-label">Welcome back</p>
+            <h1 class="page-title" style="font-size:2.8rem;">Sign <em style="color:var(--rose);font-style:italic;">In</em></h1>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-error" style="margin-bottom:1rem;">{{ form.non_field_errors }}</div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" name="username" class="form-control" autofocus placeholder="Your username">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="Your password">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:0.5rem;">
+                        Sign In
+                    </button>
+                </form>
+            </div>
+        </div>
+        <p style="text-align:center; margin-top:1.5rem; font-size:0.85rem; color:var(--warm-gray);">
+            No account yet? <a href="{% url 'accounts:register' %}" style="color:var(--rose);">Create one free</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Lumina — Photo Albums{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #F7F4EF;
+            --ink: #1A1612;
+            --charcoal: #2D2926;
+            --warm-gray: #8B847C;
+            --rose: #C4785A;
+            --rose-light: #E8C4B0;
+            --sage: #7A8C78;
+            --gold: #B8955A;
+            --border: #DDD7CF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--cream);
+            color: var(--ink);
+            min-height: 100vh;
+        }
+
+        /* NAV */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(247, 244, 239, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+        }
+        .nav-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 68px;
+        }
+        .nav-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.8rem;
+            font-weight: 300;
+            letter-spacing: 0.08em;
+            color: var(--ink);
+            text-decoration: none;
+        }
+        .nav-logo span { color: var(--rose); font-style: italic; }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            list-style: none;
+        }
+        .nav-links a {
+            font-size: 0.8rem;
+            font-weight: 400;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--charcoal);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--rose); }
+        .btn-nav {
+            background: var(--ink);
+            color: var(--cream) !important;
+            padding: 0.5rem 1.2rem;
+            font-size: 0.75rem !important;
+            letter-spacing: 0.14em !important;
+        }
+        .btn-nav:hover { background: var(--rose); color: var(--cream) !important; }
+
+        /* MAIN */
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            min-height: calc(100vh - 68px - 80px);
+        }
+
+        /* MESSAGES */
+        .messages-wrap { max-width: 1400px; margin: 1rem auto 0; padding: 0 2rem; }
+        .alert {
+            padding: 0.9rem 1.2rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            border-left: 3px solid;
+            background: white;
+        }
+        .alert-success { border-color: var(--sage); color: #3D5C3A; }
+        .alert-error { border-color: var(--rose); color: #8B2A15; }
+        .alert-info { border-color: var(--gold); color: #6B5020; }
+
+        /* TYPOGRAPHY */
+        .page-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2.4rem, 5vw, 4rem);
+            font-weight: 300;
+            line-height: 1.1;
+            color: var(--ink);
+            letter-spacing: -0.01em;
+        }
+        .page-subtitle {
+            font-size: 0.9rem;
+            color: var(--warm-gray);
+            letter-spacing: 0.06em;
+            margin-top: 0.5rem;
+        }
+        .section-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--rose);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        /* BUTTONS */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.8rem;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: var(--ink);
+            color: var(--cream);
+        }
+        .btn-primary:hover { background: var(--rose); }
+        .btn-secondary {
+            background: transparent;
+            color: var(--ink);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover { border-color: var(--ink); }
+        .btn-danger {
+            background: transparent;
+            color: #8B2A15;
+            border: 1px solid #E8BFB5;
+        }
+        .btn-danger:hover { background: #8B2A15; color: white; }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.75rem; }
+
+        /* CARDS */
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        .card-body { padding: 1.5rem; }
+
+        /* GRID */
+        .album-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2.5rem;
+        }
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        /* ALBUM CARD */
+        .album-card {
+            background: white;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: transform 0.25s, box-shadow 0.25s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .album-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(26,22,18,0.1);
+        }
+        .album-cover {
+            aspect-ratio: 4/3;
+            overflow: hidden;
+            background: var(--cream);
+            position: relative;
+        }
+        .album-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s;
+        }
+        .album-card:hover .album-cover img { transform: scale(1.04); }
+        .album-cover-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #EDE9E3 0%, #DDD7CC 100%);
+        }
+        .album-cover-placeholder svg { opacity: 0.3; }
+        .album-meta {
+            padding: 1.2rem;
+            border-top: 1px solid var(--border);
+        }
+        .album-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem;
+            font-weight: 400;
+            color: var(--ink);
+            margin-bottom: 0.3rem;
+            line-height: 1.3;
+        }
+        .album-info {
+            font-size: 0.78rem;
+            color: var(--warm-gray);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .visibility-badge {
+            font-size: 0.65rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+        }
+        .badge-public { background: #EBF4E9; color: #3D5C3A; }
+        .badge-private { background: #F4E9E9; color: #5C3A3A; }
+        .badge-shared { background: #EEF0F9; color: #3A4A7A; }
+
+        /* PHOTO CARD */
+        .photo-card {
+            position: relative;
+            overflow: hidden;
+            background: var(--cream);
+            aspect-ratio: 1;
+            cursor: pointer;
+        }
+        .photo-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+        .photo-card:hover img { transform: scale(1.05); }
+        .photo-card-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(26,22,18,0.7) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: flex-end;
+            padding: 1rem;
+        }
+        .photo-card:hover .photo-card-overlay { opacity: 1; }
+        .photo-card-title {
+            font-family: 'Cormorant Garamond', serif;
+            color: white;
+            font-size: 1rem;
+            font-weight: 300;
+        }
+
+        /* FORMS */
+        .form-wrap { max-width: 640px; }
+        .form-group { margin-bottom: 1.5rem; }
+        label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--charcoal);
+            margin-bottom: 0.5rem;
+        }
+        .form-control, .form-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            color: var(--ink);
+            background: white;
+            border: 1px solid var(--border);
+            outline: none;
+            transition: border-color 0.2s;
+            appearance: none;
+        }
+        .form-control:focus, .form-select:focus { border-color: var(--rose); }
+        textarea.form-control { resize: vertical; }
+        .errorlist { list-style: none; color: #8B2A15; font-size: 0.82rem; margin-top: 0.35rem; }
+
+        /* PAGE HEADER */
+        .page-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .page-header-actions { display: flex; gap: 0.75rem; align-items: center; }
+
+        /* DIVIDER */
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 2rem 0;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 5rem 2rem;
+            border: 1px dashed var(--border);
+            margin-top: 2rem;
+        }
+        .empty-state-icon { font-size: 3rem; opacity: 0.3; margin-bottom: 1rem; }
+        .empty-state-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.8rem;
+            font-weight: 300;
+            color: var(--ink);
+            margin-bottom: 0.5rem;
+        }
+        .empty-state-text { color: var(--warm-gray); font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            text-align: center;
+            font-size: 0.78rem;
+            color: var(--warm-gray);
+            letter-spacing: 0.06em;
+        }
+
+        /* HERO */
+        .hero {
+            padding: 6rem 0 4rem;
+            text-align: center;
+        }
+        .hero-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(3.5rem, 8vw, 7rem);
+            font-weight: 300;
+            line-height: 1.0;
+            color: var(--ink);
+            letter-spacing: -0.02em;
+        }
+        .hero-title em { color: var(--rose); font-style: italic; }
+        .hero-sub {
+            font-size: 1rem;
+            color: var(--warm-gray);
+            margin: 1.5rem 0 2.5rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.7;
+        }
+        .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+        /* BREADCRUMB */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--warm-gray);
+            margin-bottom: 2rem;
+        }
+        .breadcrumb a { color: var(--warm-gray); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--rose); }
+        .breadcrumb-sep { opacity: 0.4; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<nav>
+    <div class="nav-inner">
+        <a href="{% url 'albums:album_list' %}" class="nav-logo">Lumi<span>na</span></a>
+        <ul class="nav-links">
+            <li><a href="{% url 'albums:album_list' %}">Explore</a></li>
+            {% if user.is_authenticated %}
+            <li><a href="{% url 'albums:my_albums' %}">My Albums</a></li>
+            <li><a href="{% url 'albums:album_create' %}">+ New Album</a></li>
+            <li><a href="{% url 'accounts:profile' %}">{{ user.get_short_name|default:user.username }}</a></li>
+            <li><a href="{% url 'accounts:logout' %}" class="btn-nav">Sign Out</a></li>
+            {% else %}
+            <li><a href="{% url 'accounts:login' %}">Sign In</a></li>
+            <li><a href="{% url 'accounts:register' %}" class="btn-nav">Join Free</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+
+{% if messages %}
+<div class="messages-wrap">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    <span>Lumina Photo Albums &mdash; Built with Django &amp; Cloudinary</span>
+</footer>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

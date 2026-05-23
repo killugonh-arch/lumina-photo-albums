@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Join Lumina — Free{% endblock %}
+
+{% block content %}
+<div style="min-height:70vh; display:flex; align-items:center; justify-content:center;">
+    <div style="width:100%; max-width:480px;">
+        <div style="text-align:center; margin-bottom:2.5rem;">
+            <p class="section-label">Join for free</p>
+            <h1 class="page-title" style="font-size:2.8rem;">Create Account</h1>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            {{ form.last_name }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Username *</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}<ul class="errorlist">{% for e in form.username.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="form-group">
+                        <label>Password *</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}<ul class="errorlist">{% for e in form.password1.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password *</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}<ul class="errorlist">{% for e in form.password2.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:0.5rem;">
+                        Create My Account
+                    </button>
+                </form>
+            </div>
+        </div>
+        <p style="text-align:center; margin-top:1.5rem; font-size:0.85rem; color:var(--warm-gray);">
+            Already have an account? <a href="{% url 'accounts:login' %}" style="color:var(--rose);">Sign in</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

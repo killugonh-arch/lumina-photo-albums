@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Delete Album — Lumina{% endblock %}
+
+{% block content %}
+<div style="max-width:520px; margin:4rem auto; text-align:center;">
+    <p class="section-label">Danger Zone</p>
+    <h1 class="page-title" style="font-size:2.2rem;">Delete Album</h1>
+    <p style="color:var(--warm-gray); margin:1.5rem 0;">
+        Are you sure you want to permanently delete <strong>"{{ album.title }}"</strong>?
+        This will also delete all {{ album.photo_count }} photo{{ album.photo_count|pluralize }} in this album. This action cannot be undone.
+    </p>
+    <div style="display:flex; gap:1rem; justify-content:center;">
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Yes, Delete Forever</button>
+        </form>
+        <a href="{% url 'albums:album_detail' album.pk %}" class="btn btn-secondary">Cancel</a>
+    </div>
+</div>
+{% endblock %}

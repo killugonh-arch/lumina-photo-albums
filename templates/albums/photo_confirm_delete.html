@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Delete Photo — Lumina{% endblock %}
+{% block content %}
+<div style="max-width:520px; margin:4rem auto; text-align:center;">
+    <p class="section-label">Danger Zone</p>
+    <h1 class="page-title" style="font-size:2.2rem;">Delete Photo</h1>
+    <div style="margin:1.5rem 0;">
+        <img src="{{ photo.image.url }}" alt="{{ photo.title }}" style="max-width:200px; border:1px solid var(--border);">
+    </div>
+    <p style="color:var(--warm-gray); margin-bottom:2rem;">
+        Permanently delete <strong>"{{ photo.title|default:'this photo' }}"</strong>? This cannot be undone.
+    </p>
+    <div style="display:flex; gap:1rem; justify-content:center;">
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Delete Photo</button>
+        </form>
+        <a href="{% url 'albums:album_detail' photo.album.pk %}" class="btn btn-secondary">Cancel</a>
+    </div>
+</div>
+{% endblock %}

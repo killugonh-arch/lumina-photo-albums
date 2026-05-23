@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — Lumina{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'albums:album_list' %}">Explore</a>
+    <span class="breadcrumb-sep">›</span>
+    {% if object %}
+    <a href="{% url 'albums:album_detail' object.pk %}">{{ object.title }}</a>
+    <span class="breadcrumb-sep">›</span>
+    {% endif %}
+    <span>{{ title }}</span>
+</div>
+
+<div class="page-header">
+    <div>
+        <p class="section-label">Album Management</p>
+        <h1 class="page-title" style="font-size:2.5rem;">{{ title }}</h1>
+    </div>
+</div>
+
+<hr class="divider">
+
+<div class="form-wrap">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="{{ form.title.id_for_label }}">Album Title *</label>
+            {{ form.title }}
+            {% if form.title.errors %}<ul class="errorlist">{% for e in form.title.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.description.id_for_label }}">Description</label>
+            {{ form.description }}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.visibility.id_for_label }}">Visibility</label>
+            {{ form.visibility }}
+            <p style="font-size:0.78rem; color:var(--warm-gray); margin-top:0.35rem;">
+                Public = anyone can view. Private = only you. Shared = you and collaborators.
+            </p>
+        </div>
+        <div class="form-group">
+            <label for="{{ form.cover_image.id_for_label }}">Cover Image</label>
+            {{ form.cover_image }}
+            {% if object.cover_image %}
+            <div style="margin-top:0.75rem;">
+                <img src="{{ object.cover_image.url }}" alt="Current cover" style="max-width:200px; border:1px solid var(--border);">
+                <p style="font-size:0.78rem; color:var(--warm-gray); margin-top:0.3rem;">Current cover (upload to replace)</p>
+            </div>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.collaborators.id_for_label }}">Collaborators</label>
+            {{ form.collaborators }}
+            <p style="font-size:0.78rem; color:var(--warm-gray); margin-top:0.35rem;">Users who can add photos to shared albums.</p>
+        </div>
+
+        <hr class="divider">
+        <div style="display:flex; gap:1rem;">
+            <button type="submit" class="btn btn-primary">{{ action }} Album</button>
+            {% if object %}
+            <a href="{% url 'albums:album_detail' object.pk %}" class="btn btn-secondary">Cancel</a>
+            {% else %}
+            <a href="{% url 'albums:album_list' %}" class="btn btn-secondary">Cancel</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock %}

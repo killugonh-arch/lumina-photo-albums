@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Lumina — Explore Photo Albums{% endblock %}
+
+{% block content %}
+{% if not user.is_authenticated %}
+<div class="hero">
+    <p class="section-label">Welcome to Lumina</p>
+    <h1 class="hero-title">Your memories,<br><em>beautifully kept</em></h1>
+    <p class="hero-sub">Create, curate, and share photo albums with the people who matter most. Private or public — your story, your way.</p>
+    <div class="hero-actions">
+        <a href="{% url 'accounts:register' %}" class="btn btn-primary">Get Started Free</a>
+        <a href="{% url 'accounts:login' %}" class="btn btn-secondary">Sign In</a>
+    </div>
+</div>
+<hr class="divider">
+{% endif %}
+
+<div class="page-header">
+    <div>
+        <p class="section-label">{% if user.is_authenticated %}Your Feed{% else %}Public Albums{% endif %}</p>
+        <h2 class="page-title" style="font-size:2.2rem;">Explore Albums</h2>
+    </div>
+    {% if user.is_authenticated %}
+    <div class="page-header-actions">
+        <a href="{% url 'albums:album_create' %}" class="btn btn-primary">+ New Album</a>
+    </div>
+    {% endif %}
+</div>
+
+{% if albums %}
+<div class="album-grid">
+    {% for album in albums %}
+    <a href="{% url 'albums:album_detail' album.pk %}" class="album-card">
+        <div class="album-cover">
+            {% if album.cover_image %}
+            <img src="{{ album.cover_image.url }}" alt="{{ album.title }}">
+            {% else %}
+            <div class="album-cover-placeholder">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8B847C" stroke-width="1">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                </svg>
+            </div>
+            {% endif %}
+        </div>
+        <div class="album-meta">
+            <div class="album-title">{{ album.title }}</div>
+            <div class="album-info">
+                <span>{{ album.photo_count }} photo{{ album.photo_count|pluralize }}</span>
+                <span>by {{ album.owner.get_full_name|default:album.owner.username }}</span>
+                <span class="visibility-badge badge-{{ album.visibility }}">{{ album.get_visibility_display }}</span>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div style="display:flex; justify-content:center; gap:0.5rem; margin-top:3rem;">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary btn-sm">← Previous</a>
+    {% endif %}
+    <span style="padding:0.5rem 1rem; font-size:0.8rem; color:var(--warm-gray);">
+        Page {{ page_obj.number }} of {{ page_obj.num_pages }}
+    </span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary btn-sm">Next →</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">🌿</div>
+    <div class="empty-state-title">No albums yet</div>
+    <p class="empty-state-text">Be the first to create a beautiful photo album.</p>
+    {% if user.is_authenticated %}
+    <a href="{% url 'albums:album_create' %}" class="btn btn-primary">Create Your First Album</a>
+    {% else %}
+    <a href="{% url 'accounts:register' %}" class="btn btn-primary">Join Lumina</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}My Albums — Lumina{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <p class="section-label">Your Collection</p>
+        <h1 class="page-title">My Albums</h1>
+    </div>
+    <div class="page-header-actions">
+        <a href="{% url 'albums:album_create' %}" class="btn btn-primary">+ New Album</a>
+    </div>
+</div>
+
+{% if albums %}
+<div class="album-grid">
+    {% for album in albums %}
+    <a href="{% url 'albums:album_detail' album.pk %}" class="album-card">
+        <div class="album-cover">
+            {% if album.cover_image %}
+            <img src="{{ album.cover_image.url }}" alt="{{ album.title }}">
+            {% else %}
+            <div class="album-cover-placeholder">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8B847C" stroke-width="1">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                </svg>
+            </div>
+            {% endif %}
+        </div>
+        <div class="album-meta">
+            <div class="album-title">{{ album.title }}</div>
+            <div class="album-info">
+                <span>{{ album.photo_count }} photo{{ album.photo_count|pluralize }}</span>
+                <span class="visibility-badge badge-{{ album.visibility }}">{{ album.get_visibility_display }}</span>
+            </div>
+            <div style="display:flex; gap:0.5rem; margin-top:0.75rem;" onclick="event.preventDefault()">
+                <a href="{% url 'albums:album_edit' album.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+                <a href="{% url 'albums:album_delete' album.pk %}" class="btn btn-danger btn-sm">Delete</a>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">📸</div>
+    <div class="empty-state-title">Start your collection</div>
+    <p class="empty-state-text">Create your first album to begin curating your memories.</p>
+    <a href="{% url 'albums:album_create' %}" class="btn btn-primary">Create Album</a>
+</div>
+{% endif %}
+{% endblock %}
