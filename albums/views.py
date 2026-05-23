@@ -120,14 +120,16 @@ class AlbumDeleteView(LoginRequiredMixin, DeleteView):
         self.object = self.get_object()
         if self.object is None:
             return HttpResponseForbidden("You don't have permission to delete this album.")
-        return super().get(request, *args, **kwargs)
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         if self.object is None:
             return HttpResponseForbidden()
         messages.success(request, 'Album deleted successfully.')
-        return self.delete(request, *args, **kwargs)
+        self.object.delete()
+        return redirect(self.success_url)
 
 
 class PhotoUploadView(LoginRequiredMixin, View):
@@ -150,6 +152,7 @@ class PhotoUploadView(LoginRequiredMixin, View):
 class PhotoDetailView(DetailView):
     model = Photo
     template_name = 'albums/photo_detail.html'
+    context_object_name = 'photo'
 
     def get_object(self):
         photo = get_object_or_404(Photo, pk=self.kwargs['pk'])
@@ -197,13 +200,13 @@ class PhotoUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        # ← goes to photo_detail now, not album_detail
-        return reverse('albums:photo_detail', kwargs={'pk': self.object.pk})
+        return reverse('albums:album_detail', kwargs={'pk': self.object.album.pk})
 
 
 class PhotoDeleteView(LoginRequiredMixin, DeleteView):
     model = Photo
     template_name = 'albums/photo_confirm_delete.html'
+    context_object_name = 'photo'
 
     def get_object(self):
         photo = get_object_or_404(Photo, pk=self.kwargs['pk'])
@@ -215,17 +218,22 @@ class PhotoDeleteView(LoginRequiredMixin, DeleteView):
         self.object = self.get_object()
         if self.object is None:
             return HttpResponseForbidden()
-        return super().get(request, *args, **kwargs)
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         if self.object is None:
             return HttpResponseForbidden()
+        # Store album pk BEFORE deletion so get_success_url works
+        album_pk = self.object.album.pk
         messages.success(request, 'Photo deleted.')
-        return self.delete(request, *args, **kwargs)
+        self.object.delete()
+        return redirect('albums:album_detail', pk=album_pk)
 
     def get_success_url(self):
-        return reverse('albums:album_detail', kwargs={'pk': self.object.album.pk})
+        # Fallback — not called when post() redirects directly, but kept for safety
+        return reverse('albums:album_list')
 
 
 class MyAlbumsView(LoginRequiredMixin, ListView):
