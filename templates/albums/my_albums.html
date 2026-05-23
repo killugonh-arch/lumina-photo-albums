@@ -16,7 +16,7 @@
 <div class="album-grid">
     {% for album in albums %}
     <div class="album-card">
-        <a href="{% url 'albums:album_detail' album.pk %}">
+        <a href="{% url 'albums:album_detail' album.pk %}" class="album-card-link">
             <div class="album-cover">
                 {% if album.cover_image %}
                 <img src="{{ album.cover_image.url }}" alt="{{ album.title }}">
