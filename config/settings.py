@@ -1,5 +1,6 @@
 import os
 import re
+import cloudinary
 from pathlib import Path
 from decouple import config, Csv
 import dj_database_url
@@ -78,29 +79,32 @@ if _static_dir.exists():
     STATICFILES_DIRS = [_static_dir]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Cloudinary configuration — reads from CLOUDINARY_URL first,
-# then falls back to individual keys
+# Cloudinary — parse CLOUDINARY_URL and configure everything
 CLOUDINARY_URL = config('CLOUDINARY_URL', default='')
-if CLOUDINARY_URL:
-    match = re.match(r'cloudinary://(\d+):(.+)@(.+)', CLOUDINARY_URL)
-    if match:
-        CLOUDINARY_STORAGE = {
-            'API_KEY': match.group(1),
-            'API_SECRET': match.group(2),
-            'CLOUD_NAME': match.group(3),
-        }
-    else:
-        CLOUDINARY_STORAGE = {
-            'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
-            'API_KEY': config('CLOUDINARY_API_KEY', default=''),
-            'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
-        }
+match = re.match(r'cloudinary://(\d+):(.+)@(.+)', CLOUDINARY_URL)
+if match:
+    _api_key    = match.group(1)
+    _api_secret = match.group(2)
+    _cloud_name = match.group(3)
 else:
-    CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
-        'API_KEY': config('CLOUDINARY_API_KEY', default=''),
-        'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
-    }
+    _api_key    = config('CLOUDINARY_API_KEY', default='')
+    _api_secret = config('CLOUDINARY_API_SECRET', default='')
+    _cloud_name = config('CLOUDINARY_CLOUD_NAME', default='')
+
+# Configure the cloudinary library directly
+cloudinary.config(
+    cloud_name = _cloud_name,
+    api_key    = _api_key,
+    api_secret = _api_secret,
+    secure     = True,
+)
+
+# Also set CLOUDINARY_STORAGE for django-cloudinary-storage
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': _cloud_name,
+    'API_KEY':    _api_key,
+    'API_SECRET': _api_secret,
+}
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/'
