@@ -28,12 +28,7 @@
     transition: transform 0.4s ease, filter 0.3s ease;
 }
 
-/* ── Clickable full-card link (top layer) ─────────────── */
-.photo-card-link {
-    position: absolute;
-    inset: 0;
-    z-index: 10;
-    display: block;
+.photo-card {
     cursor: pointer;
 }
 
@@ -131,19 +126,14 @@
 {% if photos %}
 <div class="photo-grid">
     {% for photo in photos %}
-    <div class="photo-card">
+    <div class="photo-card"
+         onclick="window.location.href='{% url 'albums:photo_detail' photo.pk %}'"
+         title="View {{ photo.title|default:'photo' }}">
 
-        {# ── Layer 1: full-card clickable link → photo detail ── #}
-        <a href="{% url 'albums:photo_detail' photo.pk %}"
-           class="photo-card-link"
-           title="View {{ photo.title|default:'photo' }}"></a>
-
-        {# ── The actual image ── #}
         <img src="{{ photo.image.url }}"
              alt="{{ photo.title|default:'Photo' }}"
              loading="lazy">
 
-        {# ── Layer 2: overlay with title only ── #}
         <div class="photo-card-overlay">
             <span class="photo-card-title">{{ photo.title|default:"Untitled" }}</span>
         </div>
