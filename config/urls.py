@@ -3,25 +3,40 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
-
+import cloudinary
 
 def debug_cloudinary(request):
-    storage = getattr(settings, 'CLOUDINARY_STORAGE', {})
-    cloudinary_url = getattr(settings, 'CLOUDINARY_URL', 'NOT SET')
+    cfg = cloudinary.config()
+    try:
+        import cloudinary.uploader
+        # Try a real test upload of a tiny 1x1 pixel PNG
+        import base64
+        tiny_png = base64.b64decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+        )
+        result = cloudinary.uploader.upload(
+            tiny_png,
+            resource_type='image',
+            public_id='test_connection_ping',
+            overwrite=True,
+        )
+        upload_test = 'SUCCESS — ' + result.get('secure_url', 'no url')
+    except Exception as e:
+        upload_test = 'FAILED — ' + str(e)
+
     return JsonResponse({
-        'CLOUDINARY_URL': cloudinary_url,
-        'CLOUD_NAME': storage.get('CLOUD_NAME', 'NOT SET'),
-        'API_KEY': storage.get('API_KEY', 'NOT SET'),
-        'API_SECRET_FIRST10': storage.get('API_SECRET', 'NOT SET')[:10],
+        'cloud_name': cfg.cloud_name,
+        'api_key': cfg.api_key,
+        'api_secret_first6': (cfg.api_secret or '')[:6],
+        'upload_test': upload_test,
         'DEFAULT_FILE_STORAGE': settings.DEFAULT_FILE_STORAGE,
     })
-
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
-    path('debug-cloudinary/', debug_cloudinary),
     path('', include('albums.urls')),
+    path('debug-cloudinary/', debug_cloudinary),
 ]
 
 if settings.DEBUG:
