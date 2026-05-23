@@ -74,43 +74,6 @@
     text-overflow: ellipsis;
 }
 
-/* ── Edit / Delete buttons ───────────────────────────────── */
-.photo-action-btns {
-    display: flex;
-    gap: 0.4rem;
-    position: relative;
-    z-index: 3;        /* above the full-card link */
-}
-
-.photo-action-btns a {
-    padding: 0.28rem 0.7rem;
-    font-size: 0.63rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    text-decoration: none;
-    border: 1px solid rgba(255,255,255,0.5);
-    color: #fff;
-    background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(4px);
-    border-radius: 2px;
-    transition: background 0.2s;
-    cursor: pointer;
-}
-
-.photo-action-btns a:hover {
-    background: rgba(255,255,255,0.18);
-}
-
-.photo-action-btns a.delete-btn {
-    border-color: rgba(255,100,100,0.55);
-    color: #ffbbbb;
-}
-
-.photo-action-btns a.delete-btn:hover {
-    background: rgba(160,40,20,0.75);
-    color: #fff;
-    border-color: rgba(220,80,60,0.8);
-}
 </style>
 {% endblock %}
 
@@ -180,16 +143,9 @@
              alt="{{ photo.title|default:'Photo' }}"
              loading="lazy">
 
-        {# ── Layer 2: overlay with title + action buttons ── #}
+        {# ── Layer 2: overlay with title only ── #}
         <div class="photo-card-overlay">
             <span class="photo-card-title">{{ photo.title|default:"Untitled" }}</span>
-            {% if can_edit %}
-            <div class="photo-action-btns">
-                {# These are z-index:3 so they override the full-card link #}
-                <a href="{% url 'albums:photo_edit' photo.pk %}">Edit</a>
-                <a href="{% url 'albums:photo_delete' photo.pk %}" class="delete-btn">Delete</a>
-            </div>
-            {% endif %}
         </div>
 
     </div>
