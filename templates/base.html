@@ -160,6 +160,23 @@
         .btn-danger:hover { background: #8B2A15; color: white; }
         .btn-sm { padding: 0.5rem 1rem; font-size: 0.75rem; }
 
+        /* LOGOUT FORM */
+        .logout-form { display: inline; margin: 0; padding: 0; }
+        .logout-btn {
+            background: var(--ink);
+            color: var(--cream);
+            padding: 0.5rem 1.2rem;
+            font-size: 0.75rem;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 400;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .logout-btn:hover { background: var(--rose); }
+
         /* CARDS */
         .card {
             background: white;
@@ -405,7 +422,12 @@
             <li><a href="{% url 'albums:my_albums' %}">My Albums</a></li>
             <li><a href="{% url 'albums:album_create' %}">+ New Album</a></li>
             <li><a href="{% url 'accounts:profile' %}">{{ user.get_short_name|default:user.username }}</a></li>
-            <li><a href="{% url 'accounts:logout' %}" class="btn-nav">Sign Out</a></li>
+            <li>
+                <form method="post" action="{% url 'accounts:logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">Sign Out</button>
+                </form>
+            </li>
             {% else %}
             <li><a href="{% url 'accounts:login' %}">Sign In</a></li>
             <li><a href="{% url 'accounts:register' %}" class="btn-nav">Join Free</a></li>
@@ -420,13 +442,15 @@
     <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
     {% endfor %}
 </div>
-{% endif %}
+{% endif %} 
 
 <main>
     {% block content %}{% endblock %}
 </main>
 
+<footer>
+    <p>© 2026 Lumina — All rights reserved.</p>
+</footer>
 
-{% block extra_js %}{% endblock %}
 </body>
 </html>
